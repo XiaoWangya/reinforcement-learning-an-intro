@@ -1,0 +1,93 @@
+clc;clear;
+q_s = normrnd(0,1,[1,10])
+N = 10000;%number of iteration
+alpha = 0.1
+q_n = q_s;
+q_m = q_s;
+v = 0.1
+ac_reward = zeros(1,N);%calculate accumulated reward
+action_value = zeros(1,10);%the estimated action value
+q_value = zeros(1,10);%accumulated reward responding to each action
+action_choose = zeros(1,10);
+re_t = zeros(1,N);
+explore = 0.9
+for i = 1:N
+    increment= normrnd(0,0.01,[1,10]);
+    q_n = q_n+increment;
+    if rand <=explore
+        if i<=10
+            action = i;
+        else
+            action = find(max(action_value)==action_value);
+        end
+    else
+        if i<=10
+            action = i;
+        else
+            action = randi([1,10],1);
+        end
+    end
+    %action_choose(action)=action_choose(action)+1;
+    reward = normrnd(q_n(action),v);
+    re_t(i) = reward;%reward at time i
+    action_value(action) = action_value(action)+alpha*(reward-action_value(action));
+    if i>=2
+        ac_reward(1,i) = ac_reward(1,i-1)+reward;
+    else
+        ac_reward(1,i) = reward;
+    end
+end
+for k = 1:N
+    as(k) = sum(re_t(1:k))/k;%average reward
+end
+subplot(1,2,1)
+plot(as,'k-')
+hold on
+ac_reward_sz = zeros(1,N);%calculate accumulated reward
+action_value = zeros(1,10);%the estimated action value
+q_value = zeros(1,10);%accumulated reward responding to each action
+action_choose = zeros(1,10);
+re_t = zeros(1,N);
+for i = 1:N
+    increment= normrnd(0,0.01,[1,10]);
+    q_m = q_m+increment;
+    if rand <=explore
+        if i<=10
+            action = i;
+        else
+            action = find(max(action_value)==action_value);
+        end
+    else
+        if i<=10
+            action = i;
+        else
+            action = randi([1,10],1);
+        end
+    end
+    action_choose(action)=action_choose(action)+1;
+    reward = normrnd(q_s(action),v);
+    re_t(i) = reward;%reward at time i
+    q_value(action)=q_value(action)+reward;
+    action_value = q_value./action_choose;
+    if i>=2
+        ac_reward_sz(1,i) = ac_reward_sz(1,i-1)+reward;
+    else
+        ac_reward_sz(1,i) = reward;
+    end
+end
+for k = 1:N
+    sz(k) = sum(re_t(1:k))/k;%average reward
+end
+plot(sz,'b-')
+xlabel('step')
+ylabel('average reward')
+legend('step-size','average sample')
+subplot(1,2,2)
+plot(ac_reward,'-k');
+hold on 
+plot(ac_reward_sz,'-b');
+xlabel('step')
+ylabel('accumulated reward')
+legend('step-size','average sample')
+
+
