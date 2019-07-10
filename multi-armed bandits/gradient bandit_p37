@@ -1,0 +1,82 @@
+clc;clear;
+N = 1e4;
+action_size = 10;
+alpha = 0.1;
+var = 1;
+action_pdf = ones(1,action_size)/action_size;%uniform distribution for initialization
+explore = 0.9
+ac_reward = zeros(1,N);
+each_reward = zeros(1,N);
+re_t = zeros(1,N);
+q_s = normrnd(10,4,[1,action_size])%gaussian distribution with mean 0 and var 1
+q_n = q_s;%stationary or nonstationary;
+q_m = q_s;
+action_choose = zeros(1,action_size);%times for choosing each action
+H = zeros(1,action_size);
+%% gradient bandit
+for i = 1:N
+    increment= normrnd(0,0.01,[1,10]);
+    q_n = q_n+increment;%nonstationary
+    for j = 1:action_size
+        action_cdf(j) = sum(action_pdf(1:j));
+    end
+    if i<=10
+        action = i;
+    else
+        coin = rand;
+        action = find(action_cdf>=coin);
+        action = action(1);
+    end
+    reward = normrnd(q_n(action),var);
+    each_reward(i) = reward;
+    ac_reward(i) = sum(each_reward(1:i));
+    sum_exp = 0;
+    %% soft-max distribution
+    for kr = 1:action_size
+        if kr == action
+            H(kr) = H(kr)+alpha*(reward-mean(each_reward(1:i)))*(1-action_pdf(action));
+        else
+            H(kr) = H(kr)-alpha*(reward-mean(each_reward(1:i)))*action_pdf(action);
+        end
+        sum_exp = exp(H(kr))+sum_exp;
+    end
+    for ks = 1:action_size
+        action_pdf(ks) = exp(H(ks))/sum_exp;
+    end
+end
+plot(ac_reward)
+hold on
+
+%% average sample
+ac_reward = zeros(1,N);%calculate accumulated reward
+action_value = zeros(1,10);%the estimated action value
+q_value = zeros(1,10);%accumulated reward responding to each action
+action_choose = zeros(1,10);
+re_t = zeros(1,N);
+for i = 1:N
+    increment= normrnd(0,0.01,[1,10]);
+    q_m = q_m+increment;%nonstationary
+    if rand <=explore
+        if i<=10
+            action = i;
+        else
+            action = find(max(action_value)==action_value);
+        end
+    else
+        if i<=10
+            action = i;
+        else
+            action = randi([1,10],1);
+        end
+    end
+    action_choose(action)=action_choose(action)+1;
+    reward = normrnd(q_m(action),var);
+    re_t(i) = reward;%reward at time i
+    q_value(action)=q_value(action)+reward;
+    action_value = q_value./action_choose;
+    ac_reward(i) = sum(re_t(1:i));
+end
+plot(ac_reward)
+hold on
+legend('gradient bandit','average sample')
+
