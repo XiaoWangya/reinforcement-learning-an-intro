@@ -1,5 +1,5 @@
 clc;clear;
-q_s = normrnd(0,1,[1,10])
+q_s = normrnd(0,1,[1,10])%10 arms
 N = 10000;%number of iteration
 q_n = q_s;
 q_m = q_s;
@@ -15,18 +15,10 @@ re_t = zeros(1,N);
 for i = 1:N
     increment= normrnd(0,0.01,[1,10]);
     %q_n = q_n+increment;%nonstationary
-    if rand <=explore
-        if i<=10
-            action = i;
-        else
-            action = find(max(action_value)==action_value);
-        end
+    if i<=10
+         action = i;
     else
-        if i<=10
-            action = i;
-        else
-            action = randi([1,10],1);
-        end
+         action = find(max(action_value)==action_value);
     end
     action_choose(action)=action_choose(action)+1;
     reward = normrnd(q_n(action),1);
