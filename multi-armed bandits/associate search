@@ -1,0 +1,92 @@
+clc;clear
+% associative search task involves both trial and error learning to search
+% for the best actions, aand association of these actions with the
+% situations in which they are best.
+
+% if actions are allowed to affect the next situation as well as the
+% reward then we have the full RL problem.
+
+prob = 0.5
+arms = 2
+q_s = normrnd(0,1,[1,arms])
+N = 2000;%number of iteration
+c = 1
+
+explore = 0.9%explore rate from 0 to 1
+ac_reward = zeros(1,N);%calculate accumulated reward
+action_value = zeros(1,arms);%the estimated action value
+q_value = zeros(1,arms);%accumulated reward responding to each action
+action_choose = zeros(1,arms);
+re_t = zeros(1,N);
+for i = 1:N
+    if rand <=explore
+        if i<=arms
+            action = i;
+        else
+            action = find(max(up)==up);
+        end
+    else
+        if i<=arms
+            action = i;
+        else
+            action = randi([1,arms],1);
+        end
+    end
+    action_choose(action)=action_choose(action)+1;
+    if rand<prob
+        if action == 1
+            reward = 0.1;
+        else
+            reward = 0.2;
+        end
+    else
+        if action == 1
+            reward = 0.9;
+        else
+            reward - 0.8;
+        end
+    end
+    %%reward = normrnd(q_s(action),1);
+    re_t(i) = reward;%reward at time i
+    q_value(action)=q_value(action)+reward;
+    action_value = q_value./action_choose;
+    up = action_value+c*sqrt(log(i)./action_choose);
+    if i>=2
+        ac_reward(1,i) = ac_reward(1,i-1)+reward;
+    else
+        ac_reward(1,i) = reward;
+    end
+end
+for k = 1:N
+    kk(k) = sum(re_t(1:k))/k;%average reward
+end
+plot(kk)
+hold on
+for i = 1:N
+    action = randi([1,arms],1);%randomly choose
+    action_choose(action)=action_choose(action)+1;
+    if rand<prob
+        if action == 1
+            reward = 0.1;
+        else
+            reward = 0.2;
+        end
+    else
+        if action == 1
+            reward = 0.9;
+        else
+            reward - 0.8;
+        end
+    end
+    re_t(i) = reward;%reward at time i
+    if i>=2
+        ac_reward(1,i) = ac_reward(1,i-1)+reward;
+    else
+        ac_reward(1,i) = reward;
+    end
+end
+for k = 1:N
+    kk(k) = sum(re_t(1:k))/k;%average reward
+end
+plot(kk)
+legend('UCB','Random')
